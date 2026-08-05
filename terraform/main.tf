@@ -9,23 +9,23 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }
 
-# Flaw 1: Exposes SSH (Port 22) directly to 0.0.0.0/0
 resource "aws_security_group" "vps_sg" {
   name        = "vps-security-group"
-  description = "Security group for hardened VPS server"
+  description = "Hardened security group for VPS node"
 
   ingress {
-    description = "Allow SSH from anywhere (CRITICAL RISK)"
+    description = "Allow SSH from trusted management IP only"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.admin_cidr]
   }
 
   egress {
+    description = "Allow restricted outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -33,20 +33,22 @@ resource "aws_security_group" "vps_sg" {
   }
 }
 
-# Flaw 2: Unencrypted storage & IMDSv1 enabled
 resource "aws_instance" "vps_node" {
-  ami             = "ami-0c55b159cbfafe1f0"
-  instance_type   = "t3.micro"
-  security_groups = [aws_security_group.vps_sg.name]
+  ami                  = var.ami_id
+  instance_type        = "t3.micro"
+  security_groups      = [aws_security_group.vps_sg.name]
+  ebs_optimized        = true
+  monitoring           = true
 
   root_block_device {
-    volume_type = "gp2"
+    volume_type = "gp3"
     volume_size = 20
-    encrypted   = false
+    encrypted   = true
   }
 
   metadata_options {
-    http_tokens = "optional"
+    http_endpoint = "enabled"
+    http_tokens   = "required" # Strictly enforces IMDSv2
   }
 
   tags = {
