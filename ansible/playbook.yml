@@ -1,0 +1,39 @@
+---
+- name: Hardened VPS Baseline Setup
+  hosts: all
+  become: true
+  vars:
+    ssh_port: 22
+    allow_users: "admin"
+
+  tasks:
+    - name: Ensure UFW firewall is installed
+      ansible.builtin.package:
+        name: ufw
+        state: present
+
+    - name: Allow SSH on custom port / standard port
+      community.general.ufw:
+        rule: allow
+        port: "{{ ssh_port }}"
+        proto: tcp
+
+    - name: Enable UFW firewall with default deny ingress
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+
+    - name: Disable root SSH login in sshd_config
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin no'
+        state: present
+
+    - name: Disable password authentication in sshd_config
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+        state: present

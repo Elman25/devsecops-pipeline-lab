@@ -1,0 +1,16 @@
+# 1. Create a .gitignore file
+cat << 'EOF' > .gitignore
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# OS & Python
+__pycache__/
+*.pyc
+.DS_Store
+EOF
+
+# 2. Untrack the .terraform directory from Git index
+git rm -r --cached terraform/.terraform
