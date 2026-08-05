@@ -25,13 +25,16 @@ Automated Security & Compliance CI/CD Pipeline for Infrastructure as Code (IaC) 
 bash
 
 1. Run secret scanning
-pre-commit run --all-files
+```pre-commit run --all-files
+```
 
 2. Run IaC security checks
-cd terraform && checkov -d .
+```cd terraform && checkov -d .
+```
 
 3. Validate Ansible playbooks
-cd ../ansible && ansible-lint playbook.yml
+```cd ../ansible && ansible-lint playbook.yml
+```
 
 ### Continuous Integration (GitHub Actions)
 The workflow located at `.github/workflows/devsecops.yml` runs automatically on `push` and `pull_request` targeting the `main` branch. Any check returning a non-zero exit code blocks the deployment
